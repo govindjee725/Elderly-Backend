@@ -1,40 +1,72 @@
 import express from "express";
 import Medicine from "../models/Medicine.js";
+import Member from "../models/familyMemberModel.js";
 
 const router = express.Router();
 
-// ➕ Create
-router.post("/", async (req, res) => {
+// ➕ Add medicine for a specific member
+router.post("/:memberId", async (req, res) => {
   try {
-    const newMed = new Medicine(req.body);
-    await newMed.save();
-    res.status(201).json(newMed);
+    const { memberId } = req.params;
+    const { name, dosage, frequency, notes } = req.body;
+
+    const medicine = new Medicine({
+      name,
+      dosage,
+      frequency,
+      notes,
+      member: memberId,
+    });
+    await medicine.save();
+
+    // also push reference to member
+    await Member.findByIdAndUpdate(memberId, {
+      $push: { medicines: medicine._id },
+    });
+
+    res.status(201).json(medicine);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// 📄 Read All
-router.get("/", async (req, res) => {
-  const meds = await Medicine.find();
-  res.json(meds);
+// 📄 Get medicines for a specific member
+router.get("/:memberId", async (req, res) => {
+  try {
+    const medicines = await Medicine.find({
+      member: req.params.memberId,
+    });
+    res.json(medicines);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
-// ✏️ Update
+// ✏️ Edit medicine
 router.put("/:id", async (req, res) => {
   try {
-    const updated = await Medicine.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updated = await Medicine.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
     res.json(updated);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// 🗑 Delete
+// ❌ Delete medicine
 router.delete("/:id", async (req, res) => {
   try {
-    await Medicine.findByIdAndDelete(req.params.id);
-    res.json({ message: "Deleted successfully" });
+    const deleted = await Medicine.findByIdAndDelete(req.params.id);
+    if (deleted) {
+      await Member.updateOne(
+        { _id: deleted.member },
+        { $pull: { medicines: deleted._id } }
+      );
+    }
+    res.json({ message: "Medicine deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -1,11 +1,16 @@
 import mongoose from "mongoose";
 
 const medicineSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  dosage: { type: String },
-  time: { type: String },
-  person: { type: String },  // Reference to family member
-  status: { type: String, default: "Upcoming" },
+  name: String,
+  dosage: String,
+  frequency: String,
+  notes: String,
+  member: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Member",
+    required: true
+  }
 });
 
-export default mongoose.model("Medicine", medicineSchema);
+const Medicine = mongoose.model("Medicine", medicineSchema);
+export default Medicine;
