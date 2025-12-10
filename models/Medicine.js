@@ -5,6 +5,7 @@ const medicineSchema = new mongoose.Schema({
   dosage: String,
   frequency: String,
   notes: String,
+  image: String,
   member: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Member",

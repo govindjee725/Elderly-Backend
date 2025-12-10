@@ -1,6 +1,7 @@
 import express from "express";
 import Medicine from "../models/Medicine.js";
 import Member from "../models/familyMemberModel.js";
+import { upload } from "../middleware/upload.js";
 
 const router = express.Router();
 
@@ -10,11 +11,14 @@ router.post("/:memberId", async (req, res) => {
     const { memberId } = req.params;
     const { name, dosage, frequency, notes } = req.body;
 
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : "";
+
     const medicine = new Medicine({
       name,
       dosage,
       frequency,
       notes,
+      image: imageUrl,
       member: memberId,
     });
     await medicine.save();
