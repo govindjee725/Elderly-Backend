@@ -7,6 +7,7 @@ const memberSchema = new mongoose.Schema({
   gender: String,
   phone: String,
   address: String,
+  image: String,
   medicines: [
     {
       type: mongoose.Schema.Types.ObjectId,

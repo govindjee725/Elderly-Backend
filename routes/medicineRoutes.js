@@ -6,7 +6,7 @@ import { upload } from "../middleware/upload.js";
 const router = express.Router();
 
 // ➕ Add medicine for a specific member
-router.post("/:memberId", async (req, res) => {
+router.post("/:memberId",upload.single("image"), async (req, res) => {
   try {
     const { memberId } = req.params;
     const { name, dosage, frequency, notes } = req.body;
