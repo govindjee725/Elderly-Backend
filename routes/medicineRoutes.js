@@ -6,25 +6,26 @@ import { upload } from "../middleware/upload.js";
 const router = express.Router();
 
 // ➕ Add medicine for a specific member
-router.post("/:memberId",upload.single("image"), async (req, res) => {
+router.post("/:memberId", upload.single("image"), async (req, res) => {
   try {
-    const { memberId } = req.params;
-    const { name, dosage, frequency, notes } = req.body;
+    let imageUrl = "";
 
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : "";
+    if (req.file) {
+      const uploaded = await imagekit.upload({
+        file: fs.readFileSync(req.file.path),
+        fileName: req.file.filename,
+        folder: "/elderly/medicines",
+      });
+      imageUrl = uploaded.url;
+    }
 
-    const medicine = new Medicine({
-      name,
-      dosage,
-      frequency,
-      notes,
+    const medicine = await Medicine.create({
+      ...req.body,
+      member: req.params.memberId,
       image: imageUrl,
-      member: memberId,
     });
-    await medicine.save();
 
-    // also push reference to member
-    await Member.findByIdAndUpdate(memberId, {
+    await Member.findByIdAndUpdate(req.params.memberId, {
       $push: { medicines: medicine._id },
     });
 
@@ -33,6 +34,7 @@ router.post("/:memberId",upload.single("image"), async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 // 📄 Get medicines for a specific member
 router.get("/:memberId", async (req, res) => {

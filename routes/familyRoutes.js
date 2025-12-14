@@ -1,13 +1,26 @@
 import express from "express";
 import FamilyMember from "../models/familyMemberModel.js";
 import { upload } from "../middleware/upload.js";
+import { imagekit } from "../config/imagekit.js";
+import fs from "fs";
+
+
 
 const router = express.Router();
 
 // CREATE MEMBER WITH IMAGE
 router.post("/", upload.single("image"), async (req, res) => {
   try {
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : "";
+    let imageUrl = "";
+
+    if (req.file) {
+      const uploaded = await imagekit.upload({
+        file: fs.readFileSync(req.file.path),
+        fileName: req.file.filename,
+        folder: "/elderly/members",
+      });
+      imageUrl = uploaded.url;
+    }
 
     const member = await FamilyMember.create({
       ...req.body,
