@@ -2,7 +2,7 @@ import express from "express";
 import Medicine from "../models/Medicine.js";
 import Member from "../models/familyMemberModel.js";
 import { upload } from "../middleware/upload.js";
-
+import { imagekit } from "../config/imagekit.js";
 const router = express.Router();
 
 // ➕ Add medicine for a specific member
