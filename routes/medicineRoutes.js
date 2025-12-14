@@ -6,14 +6,17 @@ import { upload } from "../middleware/upload.js";
 const router = express.Router();
 
 // ➕ Add medicine for a specific member
+import { imagekit } from "../config/imagekit.js";
+import { upload } from "../middleware/upload.js";
+
 router.post("/:memberId", upload.single("image"), async (req, res) => {
   try {
     let imageUrl = "";
 
     if (req.file) {
       const uploaded = await imagekit.upload({
-        file: fs.readFileSync(req.file.path),
-        fileName: req.file.filename,
+        file: req.file.buffer.toString("base64"),
+        fileName: req.file.originalname,
         folder: "/elderly/medicines",
       });
       imageUrl = uploaded.url;
@@ -34,6 +37,7 @@ router.post("/:memberId", upload.single("image"), async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 
 // 📄 Get medicines for a specific member

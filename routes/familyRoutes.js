@@ -2,7 +2,7 @@ import express from "express";
 import FamilyMember from "../models/familyMemberModel.js";
 import { upload } from "../middleware/upload.js";
 import { imagekit } from "../config/imagekit.js";
-import fs from "fs";
+
 
 
 
@@ -15,11 +15,11 @@ router.post("/", upload.single("image"), async (req, res) => {
 
     if (req.file) {
       const uploaded = await imagekit.upload({
-        file: fs.readFileSync(req.file.path),
-        fileName: req.file.filename,
+        file: req.file.buffer.toString("base64"),
+        fileName: req.file.originalname,
         folder: "/elderly/members",
       });
-      imageUrl = uploaded.url;
+      imageUrl = uploaded.url; // ✅ FULL CDN URL
     }
 
     const member = await FamilyMember.create({
@@ -33,6 +33,7 @@ router.post("/", upload.single("image"), async (req, res) => {
   }
 });
 
+
 // READ
 router.get("/", async (req, res) => {
   const members = await FamilyMember.find();
@@ -42,7 +43,16 @@ router.get("/", async (req, res) => {
 // UPDATE
 router.put("/:id", upload.single("image"), async (req, res) => {
   try {
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : req.body.image;
+    let imageUrl = req.body.image || "";
+
+    if (req.file) {
+      const uploaded = await imagekit.upload({
+        file: req.file.buffer.toString("base64"),
+        fileName: req.file.originalname,
+        folder: "/elderly/members",
+      });
+      imageUrl = uploaded.url;
+    }
 
     const updated = await FamilyMember.findByIdAndUpdate(
       req.params.id,
