@@ -2,13 +2,11 @@ import express from "express";
 import Medicine from "../models/Medicine.js";
 import Member from "../models/familyMemberModel.js";
 import { upload } from "../middleware/upload.js";
-import { imagekit } from "../config/imagekit.js";
+import { imagekit } from "../config/imagekit.js"; // ✅ ONLY ONCE, AT TOP
+
 const router = express.Router();
 
-// ➕ Add medicine for a specific member
-import { imagekit } from "../config/imagekit.js";
-import { upload } from "../middleware/upload.js";
-
+// ➕ ADD MEDICINE WITH IMAGE (IMAGEKIT)
 router.post("/:memberId", upload.single("image"), async (req, res) => {
   try {
     let imageUrl = "";
@@ -17,13 +15,17 @@ router.post("/:memberId", upload.single("image"), async (req, res) => {
       const uploaded = await imagekit.upload({
         file: req.file.buffer.toString("base64"),
         fileName: req.file.originalname,
-        folder: "/elderly/medicines",
+        folder: "/elderly/medicines", // ✅ WILL AUTO-CREATE
       });
+
       imageUrl = uploaded.url;
     }
 
     const medicine = await Medicine.create({
-      ...req.body,
+      name: req.body.name,
+      dosage: req.body.dosage,
+      frequency: req.body.frequency,
+      notes: req.body.notes,
       member: req.params.memberId,
       image: imageUrl,
     });
@@ -34,13 +36,12 @@ router.post("/:memberId", upload.single("image"), async (req, res) => {
 
     res.status(201).json(medicine);
   } catch (err) {
+    console.error("❌ Medicine upload error:", err);
     res.status(500).json({ message: err.message });
   }
 });
 
-
-
-// 📄 Get medicines for a specific member
+// 📄 GET MEDICINES FOR MEMBER
 router.get("/:memberId", async (req, res) => {
   try {
     const medicines = await Medicine.find({
@@ -52,21 +53,7 @@ router.get("/:memberId", async (req, res) => {
   }
 });
 
-// ✏️ Edit medicine
-router.put("/:id", async (req, res) => {
-  try {
-    const updated = await Medicine.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-    res.json(updated);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// ❌ Delete medicine
+// ❌ DELETE MEDICINE
 router.delete("/:id", async (req, res) => {
   try {
     const deleted = await Medicine.findByIdAndDelete(req.params.id);
