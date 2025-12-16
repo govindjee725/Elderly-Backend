@@ -15,17 +15,24 @@ router.post("/:memberId", upload.single("image"), async (req, res) => {
       const uploaded = await imagekit.upload({
         file: req.file.buffer.toString("base64"),
         fileName: req.file.originalname,
-        folder: "/elderly/medicines", // ✅ WILL AUTO-CREATE
+        folder: "/elderly/medicines",
       });
-
       imageUrl = uploaded.url;
     }
+
+    // ✅ FIX: PARSE REQUIRED FIELDS
+    const time = req.body.time;
+    const days = req.body.days
+      ? JSON.parse(req.body.days)
+      : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
     const medicine = await Medicine.create({
       name: req.body.name,
       dosage: req.body.dosage,
       frequency: req.body.frequency,
       notes: req.body.notes,
+      time,        // ✅ REQUIRED
+      days,        // ✅ REQUIRED
       member: req.params.memberId,
       image: imageUrl,
     });
@@ -40,6 +47,7 @@ router.post("/:memberId", upload.single("image"), async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 // 📄 GET MEDICINES FOR MEMBER
 router.get("/:memberId", async (req, res) => {
