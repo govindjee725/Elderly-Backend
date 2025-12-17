@@ -19,7 +19,7 @@ app.use("/api/family", familyRoutes);
 
 app.use("/api/medicines", medicineRoutes);
 app.use("/api/medicine-logs", medicineLogRoutes);
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.get("/",(req,res)=>{
   res.send("hello");
 })
